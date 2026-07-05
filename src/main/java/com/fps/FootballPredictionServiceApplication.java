@@ -1,4 +1,4 @@
-package com.jaisal.football_prediction_service;
+package com.fps;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

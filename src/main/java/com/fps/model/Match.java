@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EqualsAndHashCode(of = "id")
 public class Match {
 
     @Id
@@ -33,10 +34,18 @@ public class Match {
     private Integer currentMinute = 0;
 
     @Column(nullable = false)
-    @Builder.Default
-    private LocalDateTime startTime = LocalDateTime.now();
+    private LocalDateTime startTime;
 
     @Column(nullable = false, updatable = false)
-    @Builder.Default
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    void onPrePersist() {
+        if (startTime == null) {
+            startTime = LocalDateTime.now();
+        }
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
+    }
 }

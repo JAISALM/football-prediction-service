@@ -1,6 +1,7 @@
 package com.fps.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
 import lombok.*;
 import java.time.LocalDateTime;
 
@@ -10,6 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EqualsAndHashCode(of = "id")
 public class User {
 
     @Id
@@ -20,6 +22,7 @@ public class User {
     private String username;
 
     @Column(nullable = false)
+    @Min(0)
     @Builder.Default
     private Integer totalPoints = 100;
 
@@ -27,6 +30,12 @@ public class User {
     private Integer version;
 
     @Column(nullable = false, updatable = false)
-    @Builder.Default
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    void onPrePersist() {
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
+    }
 }
