@@ -1,6 +1,6 @@
 package com.fps.repo;
 
-import com.fps.model.User;
+import com.fps.entities.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 

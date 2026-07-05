@@ -1,4 +1,4 @@
-package com.fps.model;
+package com.fps.entities;
 
 import com.fps.enums.QuestionType;
 import com.fps.enums.WindowStatus;

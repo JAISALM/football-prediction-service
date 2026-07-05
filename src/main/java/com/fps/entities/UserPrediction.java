@@ -1,4 +1,4 @@
-package com.fps.model;
+package com.fps.entities;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;

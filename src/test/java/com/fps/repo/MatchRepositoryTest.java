@@ -1,7 +1,7 @@
 package com.fps.repo;
 
 import com.fps.enums.MatchStatus;
-import com.fps.model.Match;
+import com.fps.entities.Match;
 import com.fps.FootballPredictionServiceApplication;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

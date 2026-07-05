@@ -1,6 +1,6 @@
 package com.fps.repo;
 
-import com.fps.model.User;
+import com.fps.entities.User;
 import com.fps.FootballPredictionServiceApplication;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
