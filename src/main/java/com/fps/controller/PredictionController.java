@@ -1,4 +1,4 @@
-package com.jaisal.football_prediction_service.controller;
+package com.fps.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
