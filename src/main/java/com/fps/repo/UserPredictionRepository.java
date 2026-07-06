@@ -14,4 +14,6 @@ public interface UserPredictionRepository extends JpaRepository<UserPrediction, 
 
     @EntityGraph(attributePaths = {"user", "window"})
     Page<UserPrediction> findByWindowId(String windowId, Pageable pageable);
+
+    List<UserPrediction> findByUserId(String userId, Pageable pageable);
 }
