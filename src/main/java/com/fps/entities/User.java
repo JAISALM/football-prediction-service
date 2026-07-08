@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 @Entity
 @Table(name = "users")
@@ -11,7 +12,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@EqualsAndHashCode(of = "id")
+@EqualsAndHashCode(of = "id", doNotUseGetters = true)
 public class User {
 
     @Id
@@ -21,7 +22,7 @@ public class User {
     @Column(unique = true, nullable = false)
     private String username;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "integer CHECK (total_points >= 0)")
     @Min(0)
     @Builder.Default
     private Integer totalPoints = 100;
@@ -35,7 +36,7 @@ public class User {
     @PrePersist
     void onPrePersist() {
         if (createdAt == null) {
-            createdAt = LocalDateTime.now();
+            createdAt = LocalDateTime.now(ZoneOffset.UTC);
         }
     }
 }

@@ -6,6 +6,7 @@ import com.fps.enums.WindowStatus;
 import com.fps.entities.Match;
 import com.fps.entities.PredictionWindow;
 import com.fps.FootballPredictionServiceApplication;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,6 +29,12 @@ class PredictionWindowRepositoryTest {
 
     @Autowired
     private MatchRepository matchRepository;
+
+    @BeforeEach
+    void setUp() {
+        predictionWindowRepository.deleteAll();
+        matchRepository.deleteAll();
+    }
 
     @Test
     void findByMatchIdAndStatusReturnsWindows() {
@@ -56,11 +63,11 @@ class PredictionWindowRepositoryTest {
                         .build()
         ));
 
-        List<PredictionWindow> open = predictionWindowRepository.findByMatchIdAndStatus(
-                match.getId(), WindowStatus.OPEN);
+        Page<PredictionWindow> open = predictionWindowRepository.findByMatchIdAndStatus(
+                match.getId(), WindowStatus.OPEN, PageRequest.of(0, 10));
 
-        assertEquals(1, open.size());
-        assertEquals(1, open.get(0).getWindowIndex());
+        assertEquals(1, open.getContent().size());
+        assertEquals(1, open.getContent().get(0).getWindowIndex());
     }
 
     @Test
@@ -109,11 +116,11 @@ class PredictionWindowRepositoryTest {
     }
 
     @Test
-    void findByMatchIdReturnsEmptyForUnknownMatch() {
-        List<PredictionWindow> windows = predictionWindowRepository.findByMatchIdAndStatus(
-                "non-existent-id", WindowStatus.OPEN);
+    void findByMatchIdReturnsEmptyPageForUnknownMatch() {
+        Page<PredictionWindow> windows = predictionWindowRepository.findByMatchIdAndStatus(
+                "non-existent-id", WindowStatus.OPEN, PageRequest.of(0, 10));
 
-        assertTrue(windows.isEmpty());
+        assertTrue(windows.getContent().isEmpty());
     }
 
     @Test
@@ -136,5 +143,24 @@ class PredictionWindowRepositoryTest {
         PredictionWindow found = predictionWindowRepository.findById(saved.getId()).orElseThrow();
         assertTrue(found.getResultValue());
         assertEquals(WindowStatus.RESOLVED, found.getStatus());
+    }
+
+    @Test
+    void versionFieldExists() {
+        Match match = matchRepository.save(Match.builder()
+                .homeTeam("version_match")
+                .awayTeam("version_opponent")
+                .build());
+
+        PredictionWindow saved = predictionWindowRepository.save(PredictionWindow.builder()
+                .match(match)
+                .windowIndex(1)
+                .startMinute(0)
+                .endMinute(5)
+                .questionType(QuestionType.GOAL)
+                .build());
+
+        PredictionWindow found = predictionWindowRepository.findById(saved.getId()).orElseThrow();
+        assertNotNull(found.getVersion());
     }
 }

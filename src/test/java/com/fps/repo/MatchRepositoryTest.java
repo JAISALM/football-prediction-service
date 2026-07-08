@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import org.junit.jupiter.api.BeforeEach;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(classes = FootballPredictionServiceApplication.class)
@@ -23,8 +24,13 @@ class MatchRepositoryTest {
     @Autowired
     private MatchRepository matchRepository;
 
+    @BeforeEach
+    void setUp() {
+        matchRepository.deleteAll();
+    }
+
     @Test
-    void findByStatusReturnsMatches() {
+    void findByStatusWithPaginationReturnsMatches() {
         Match match1 = Match.builder()
                 .homeTeam("Arsenal")
                 .awayTeam("Chelsea")
@@ -37,17 +43,17 @@ class MatchRepositoryTest {
                 .build();
         matchRepository.saveAll(List.of(match1, match2));
 
-        List<Match> scheduled = matchRepository.findByStatus(MatchStatus.SCHEDULED);
+        Page<Match> scheduled = matchRepository.findByStatus(MatchStatus.SCHEDULED, PageRequest.of(0, 10));
 
-        assertEquals(1, scheduled.size());
-        assertEquals("Arsenal", scheduled.get(0).getHomeTeam());
+        assertEquals(1, scheduled.getContent().size());
+        assertEquals("Arsenal", scheduled.getContent().get(0).getHomeTeam());
     }
 
     @Test
-    void findByStatusReturnsEmptyForNoMatches() {
-        List<Match> finished = matchRepository.findByStatus(MatchStatus.FINISHED);
+    void findByStatusReturnsEmptyPageForNoMatches() {
+        Page<Match> finished = matchRepository.findByStatus(MatchStatus.FINISHED, PageRequest.of(0, 10));
 
-        assertTrue(finished.isEmpty());
+        assertTrue(finished.getContent().isEmpty());
     }
 
     @Test
@@ -104,5 +110,16 @@ class MatchRepositoryTest {
 
         Match found = matchRepository.findById(saved.getId()).orElseThrow();
         assertEquals(0, found.getCurrentMinute());
+    }
+
+    @Test
+    void versionFieldExists() {
+        Match saved = matchRepository.save(Match.builder()
+                .homeTeam("version_match")
+                .awayTeam("version_opponent")
+                .build());
+
+        Match found = matchRepository.findById(saved.getId()).orElseThrow();
+        assertNotNull(found.getVersion());
     }
 }

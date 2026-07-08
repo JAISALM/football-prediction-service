@@ -4,6 +4,7 @@ import com.fps.enums.MatchStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 @Entity
 @Table(name = "matches")
@@ -11,7 +12,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@EqualsAndHashCode(of = "id")
+@EqualsAndHashCode(of = "id", doNotUseGetters = true)
 public class Match {
 
     @Id
@@ -39,13 +40,17 @@ public class Match {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Version
+    private Integer version;
+
     @PrePersist
     void onPrePersist() {
+        LocalDateTime utcNow = LocalDateTime.now(ZoneOffset.UTC);
         if (startTime == null) {
-            startTime = LocalDateTime.now();
+            startTime = utcNow;
         }
         if (createdAt == null) {
-            createdAt = LocalDateTime.now();
+            createdAt = utcNow;
         }
     }
 }
