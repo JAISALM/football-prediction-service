@@ -9,13 +9,21 @@ import com.fps.enums.QuestionType;
 import com.fps.exception.ResourceNotFoundException;
 import com.fps.repo.MatchRepository;
 import com.fps.repo.PredictionWindowRepository;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
+@Slf4j
 @Service
 public class MatchService {
+
+    static final int TOTAL_PREDICTION_WINDOWS = 18;
+    static final int WINDOW_MINUTES = 5;
 
     private final MatchRepository matchRepository;
     private final PredictionWindowRepository windowRepository;
@@ -25,22 +33,21 @@ public class MatchService {
         this.windowRepository = windowRepository;
     }
 
-    public List<MatchResponse> findAll() {
-        return matchRepository.findAll().stream()
-                .map(this::toResponse)
-                .toList();
+    @Transactional(readOnly = true)
+    public Page<MatchResponse> findAll(Pageable pageable) {
+        return matchRepository.findAll(pageable).map(this::toResponse);
     }
 
+    @Transactional(readOnly = true)
     public MatchResponse findById(String id) {
         Match match = matchRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Match not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Match", id));
         return toResponse(match);
     }
 
-    public List<MatchResponse> findByStatus(MatchStatus status) {
-        return matchRepository.findByStatus(status).stream()
-                .map(this::toResponse)
-                .toList();
+    @Transactional(readOnly = true)
+    public Page<MatchResponse> findByStatus(MatchStatus status, Pageable pageable) {
+        return matchRepository.findByStatus(status, pageable).map(this::toResponse);
     }
 
     @Transactional
@@ -50,10 +57,11 @@ public class MatchService {
                 .awayTeam(request.awayTeam())
                 .status(MatchStatus.SCHEDULED)
                 .currentMinute(0)
-                .startTime(request.startTime() != null ? request.startTime() : LocalDateTime.now())
+                .startTime(request.startTime() != null ? request.startTime() : LocalDateTime.now(ZoneOffset.UTC))
                 .build();
 
         match = matchRepository.save(match);
+        log.info("Created match {} ({} vs {})", match.getId(), match.getHomeTeam(), match.getAwayTeam());
         generatePredictionWindows(match);
         return toResponse(match);
     }
@@ -61,19 +69,21 @@ public class MatchService {
     @Transactional
     public MatchResponse startMatch(String id) {
         Match match = matchRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Match not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Match", id));
 
         match.setStatus(MatchStatus.LIVE);
         match.setCurrentMinute(0);
         match = matchRepository.save(match);
+        log.info("Started match {}", match.getId());
         return toResponse(match);
     }
 
     void generatePredictionWindows(Match match) {
         QuestionType[] types = QuestionType.values();
-        for (int i = 0; i < 18; i++) {
-            int startMinute = i * 5;
-            int endMinute = startMinute + 5;
+        List<PredictionWindow> windows = new java.util.ArrayList<>(TOTAL_PREDICTION_WINDOWS);
+        for (int i = 0; i < TOTAL_PREDICTION_WINDOWS; i++) {
+            int startMinute = i * WINDOW_MINUTES;
+            int endMinute = startMinute + WINDOW_MINUTES;
 
             PredictionWindow window = PredictionWindow.builder()
                     .match(match)
@@ -83,11 +93,13 @@ public class MatchService {
                     .questionType(types[i % types.length])
                     .build();
 
-            windowRepository.save(window);
+            windows.add(window);
         }
+        windowRepository.saveAll(windows);
+        log.info("Generated {} prediction windows for match {}", TOTAL_PREDICTION_WINDOWS, match.getId());
     }
 
-    MatchResponse toResponse(Match match) {
+    private MatchResponse toResponse(Match match) {
         return new MatchResponse(
                 match.getId(),
                 match.getHomeTeam(),

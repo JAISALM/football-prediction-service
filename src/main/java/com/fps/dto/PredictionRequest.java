@@ -1,6 +1,9 @@
 package com.fps.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
 public record PredictionRequest(
-        String windowId,
-        Boolean predictedValue
+        @NotBlank String windowId,
+        @NotNull Boolean predictedValue
 ) {}

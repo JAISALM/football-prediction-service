@@ -1,8 +1,10 @@
 package com.fps.controller;
 
+import com.fps.dto.CreateUserRequest;
+import com.fps.dto.UserCreateResponse;
 import com.fps.dto.UserStatsResponse;
-import com.fps.entities.User;
 import com.fps.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,9 +25,9 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody CreateUserRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(userService.createUser(request.username()));
+    public ResponseEntity<UserCreateResponse> createUser(
+            @Valid @RequestBody CreateUserRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(userService.createUser(request.username()));
     }
-
-    record CreateUserRequest(String username) {}
 }

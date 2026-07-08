@@ -1,7 +1,10 @@
 package com.fps.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import java.time.LocalDateTime;
+
 public record CreateMatchRequest(
-        String homeTeam,
-        String awayTeam,
-        java.time.LocalDateTime startTime
+        @NotBlank String homeTeam,
+        @NotBlank String awayTeam,
+        LocalDateTime startTime
 ) {}

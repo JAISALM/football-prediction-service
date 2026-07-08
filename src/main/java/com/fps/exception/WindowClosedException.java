@@ -1,7 +1,7 @@
 package com.fps.exception;
 
 public class WindowClosedException extends RuntimeException {
-    public WindowClosedException(String message) {
-        super(message);
+    public WindowClosedException() {
+        super("Prediction window is no longer open");
     }
 }

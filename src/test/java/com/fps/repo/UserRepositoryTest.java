@@ -2,6 +2,7 @@ package com.fps.repo;
 
 import com.fps.entities.User;
 import com.fps.FootballPredictionServiceApplication;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -19,6 +20,11 @@ class UserRepositoryTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @BeforeEach
+    void setUp() {
+        userRepository.deleteAll();
+    }
 
     @Test
     void findByUsernameReturnsUser() {

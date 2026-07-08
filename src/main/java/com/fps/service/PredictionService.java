@@ -12,9 +12,11 @@ import com.fps.exception.WindowClosedException;
 import com.fps.repo.PredictionWindowRepository;
 import com.fps.repo.UserPredictionRepository;
 import com.fps.repo.UserRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 public class PredictionService {
 
@@ -33,17 +35,17 @@ public class PredictionService {
     @Transactional
     public PredictionResponse submitPrediction(String userId, PredictionRequest request) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("User", userId));
 
         PredictionWindow window = windowRepository.findById(request.windowId())
-                .orElseThrow(() -> new ResourceNotFoundException("Prediction window not found with id: " + request.windowId()));
+                .orElseThrow(() -> new ResourceNotFoundException("PredictionWindow", request.windowId()));
 
         if (userPredictionRepository.findByUserIdAndWindowId(userId, request.windowId()).isPresent()) {
-            throw new DuplicatePredictionException("User has already predicted for this window");
+            throw new DuplicatePredictionException();
         }
 
         if (window.getStatus() != WindowStatus.OPEN) {
-            throw new WindowClosedException("Prediction window is no longer open");
+            throw new WindowClosedException();
         }
 
         UserPrediction prediction = UserPrediction.builder()
@@ -53,10 +55,11 @@ public class PredictionService {
                 .build();
 
         prediction = userPredictionRepository.save(prediction);
+        log.info("User {} submitted prediction {} for window {}", userId, prediction.getId(), request.windowId());
         return toResponse(prediction);
     }
 
-    PredictionResponse toResponse(UserPrediction prediction) {
+    private PredictionResponse toResponse(UserPrediction prediction) {
         return new PredictionResponse(
                 prediction.getId(),
                 prediction.getWindow().getId(),

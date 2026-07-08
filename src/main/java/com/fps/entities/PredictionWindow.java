@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@EqualsAndHashCode(of = "id")
+@EqualsAndHashCode(of = "id", doNotUseGetters = true)
 public class PredictionWindow {
 
     @Id
@@ -44,4 +44,7 @@ public class PredictionWindow {
     private Boolean resultValue;
 
     private LocalDateTime resolvedAt;
+
+    @Version
+    private Integer version;
 }
